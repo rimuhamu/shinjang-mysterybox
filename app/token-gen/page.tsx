@@ -5,37 +5,58 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { generateToken } from '@/app/actions/generate-token';
+import {
+  GeneratorValidator,
+  TGeneratorValidator,
+} from '@/lib/validators/generator-validator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useState } from 'react';
+import { Copy } from 'lucide-react';
 
 export default function TokenGenPage() {
-  const formSchema = z.object({
-    name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const [name, setName] = useState('');
+  const [token, setToken] = useState('');
+  const form = useForm<TGeneratorValidator>({
+    resolver: zodResolver(GeneratorValidator),
     defaultValues: {
       name: '',
+      tickets: 1,
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  function onCopy() {
+    navigator.clipboard.writeText(token);
+    toast.success('Access token copied to the clipboard.');
+  }
+
+  async function onSubmit(values: TGeneratorValidator) {
     try {
-      //   await axios.post(`http://localhost:3000/api/generate`, values.name);
-      generateToken(values.name);
+      const user = await generateToken(values);
+
+      setName(user.name);
+      setToken(user.token!);
+
       toast.success('Token has been generated.');
     } catch (error) {
       toast.error('Something went wrong.');
     }
-  };
+  }
   return (
     <main className='flex min-h-screen flex-col items-center justify-center bg-gray-700 p-24'>
       <div className='flex flex-col w-full max-w-sm items-center space-x-2 gap-10'>
@@ -53,8 +74,25 @@ export default function TokenGenPage() {
                 <FormItem>
                   <FormControl>
                     <Input
-                      placeholder='Name'
+                      placeholder='Enter participant name'
+                      type='text'
                       {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='tickets'
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      {...form.register('tickets', { valueAsNumber: true })}
+                      placeholder='How many tickets'
+                      type='number'
                     />
                   </FormControl>
                   <FormMessage />
@@ -68,6 +106,7 @@ export default function TokenGenPage() {
             </Button>
           </form>
         </Form>
+        <Button onClick={() => onCopy()}>Copy Token</Button>
       </div>
     </main>
   );

@@ -5,32 +5,20 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
 import { generateToken } from '@/app/actions/generate-token';
 import {
   GeneratorValidator,
   TGeneratorValidator,
 } from '@/lib/validators/generator-validator';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { useState } from 'react';
-import { Copy } from 'lucide-react';
 
 export default function TokenGenPage() {
-  const [name, setName] = useState('');
   const [token, setToken] = useState('');
   const form = useForm<TGeneratorValidator>({
     resolver: zodResolver(GeneratorValidator),
@@ -49,7 +37,6 @@ export default function TokenGenPage() {
     try {
       const user = await generateToken(values);
 
-      setName(user.name);
       setToken(user.token!);
 
       toast.success('Token has been generated.');

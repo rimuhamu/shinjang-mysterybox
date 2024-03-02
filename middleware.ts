@@ -1,17 +1,19 @@
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(req: NextRequest) {
-  const supplied_token = req.nextUrl.searchParams.get('token');
-  const valid_token = process.env.AUTH_TOKEN;
+  const supplied_token = cookies().get('token')?.value;
+  const valid_token = process.env.NEXT_PUBLIC_AUTH_TOKEN;
+  console.log(supplied_token);
 
   if (supplied_token !== valid_token) {
-    const homeUrl = new URL('/', req.url);
-    return NextResponse.redirect(homeUrl);
+    const loginUrl = new URL('/login', req.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/raffle/:path*', '/token-gen', '/api/generate'],
+  matcher: ['/token-gen'],
 };

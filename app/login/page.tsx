@@ -19,9 +19,13 @@ import {
 } from '@/lib/validators/token-validator';
 import { useRouter } from 'next/navigation';
 import { setCookies } from '../actions/set-cookies';
+import { getTokens } from '../actions/get-tokens';
+import { useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
+
+  const [isValidToken, setIsValidToken] = useState(false);
 
   const form = useForm<TTokenValidator>({
     resolver: zodResolver(TokenValidator),
@@ -32,12 +36,35 @@ export default function LoginPage() {
 
   async function onSubmit(values: TTokenValidator) {
     try {
-      setCookies(values.token);
-      if (values.token === process.env.NEXT_PUBLIC_AUTH_TOKEN) {
-        console.log('match!');
+      const token = values.token;
+      const availableTokens = getTokens();
+
+      const validTokens = (await availableTokens).filter((availableToken) => {
+        return availableToken.isExpired === false;
+      });
+
+      setCookies(token);
+      // console.log(availableTokens);
+      // console.log(validTokens);
+      // console.log(token);
+
+      validTokens.forEach((validToken) => {
+        if (token === validToken.token) {
+          setIsValidToken(true);
+          return;
+        } else {
+          setIsValidToken(false);
+        }
+      });
+
+      if (token === process.env.NEXT_PUBLIC_AUTH_TOKEN) {
+        console.log('admin match!');
         router.push('/token-gen');
+      } else if (isValidToken) {
+        console.log('user match!');
+        router.push('/box');
       } else {
-        console.log('fail');
+        toast.error('Please enter a valid token.');
       }
     } catch (error) {
       toast.error('Something went wrong.');

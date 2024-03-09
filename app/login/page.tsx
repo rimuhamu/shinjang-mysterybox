@@ -59,6 +59,7 @@ export default function LoginPage() {
 
       if (token === process.env.NEXT_PUBLIC_AUTH_TOKEN) {
         console.log('admin match!');
+        console.log(token);
         router.push('/token-gen');
       } else if (isValidToken) {
         console.log('user match!');

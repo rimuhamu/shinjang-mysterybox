@@ -7,6 +7,6 @@ export async function setCookies(token: string) {
     name: 'token',
     value: token,
     httpOnly: true,
-    path: '/login',
+    path: '/',
   });
 }
